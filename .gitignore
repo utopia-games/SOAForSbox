@@ -23,7 +23,7 @@ code/Editor/.vscode/*
 *.*_c
 *.los
 *.vpk
-**/[Oo]bj/
+
 # Common IntelliJ Platform excludes
 
 # User specific
