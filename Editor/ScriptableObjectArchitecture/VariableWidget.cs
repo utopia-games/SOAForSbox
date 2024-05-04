@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Sandbox;
 using Sandbox.ScriptableObjectArchitecture;
 using Sandbox.Utils;
+using Sandbox.Variables;
 
 namespace Editor;
 

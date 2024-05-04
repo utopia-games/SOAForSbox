@@ -1,4 +1,4 @@
-﻿namespace Sandbox;
+﻿namespace Sandbox.Variables;
 
 public class Variable<T> : GameResource
 {

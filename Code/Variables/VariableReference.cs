@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace Sandbox;
+namespace Sandbox.Variables;
 
 public class VariableReference<T>
 {

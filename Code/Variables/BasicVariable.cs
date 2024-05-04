@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sandbox;
+namespace Sandbox.Variables;
 
 // Since I can't auto generate the Variable game resources, I'll just have to do it manually... 
 // So this is for the basic types, I'll have to do this for all the other types as well
