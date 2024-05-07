@@ -10,7 +10,7 @@ public class VariableReference<T>
 	[Hide] public T? ConstantValue { get; set; } = default;
 
 	[ShowIf( nameof(ValueToUse), VariableType.Variable ), Tag( "Refresh" )]
-	public IVariable? Variable { get; set; } = default;
+	public VariableGameResource? Variable { get; set; } = default;
 
 	[Hide, JsonIgnore]
 	public bool CanEditValue =>
@@ -23,7 +23,7 @@ public class VariableReference<T>
 			ValueToUse switch
 			{
 				VariableType.Constant => ConstantValue,
-				VariableType.Variable when Variable != null => (T?) Variable.RawValue,
+				VariableType.Variable when Variable != null => Variable.GetValue<T>(),
 				VariableType.Variable when Variable == null => default,
 				_ => throw new ArgumentOutOfRangeException( nameof(ValueToUse), ValueToUse, "Invalid ValueToUse." )
 			};
@@ -35,7 +35,7 @@ public class VariableReference<T>
 					ConstantValue = value;
 					break;
 				case VariableType.Variable when Variable != null:
-					Variable.RawValue = value;
+					Variable.SetValue( value );
 					break;
 				case VariableType.Variable when Variable == null:
 					throw new NullReferenceException(
