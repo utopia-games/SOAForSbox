@@ -105,7 +105,7 @@ public static class VariablesEditorMenu
 	
 	public static List<AssetType> GetVariableTypes()
 	{
-		var genericType = typeof(Variable<>);
+		var genericType = typeof(IVariable);
 
 		bool Predicate( AssetType x ) => x.ResourceType != null && x.ResourceType.IsBasedOnGenericType( genericType ) && x.FileExtension != "errored";
 		
