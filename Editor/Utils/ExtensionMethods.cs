@@ -6,9 +6,9 @@ namespace Sandbox.Utils;
 
 public static class ExtensionMethods
 {
-	public static List<AssetType> GetRelatedAssetTypes( this Type type )
+	public static HashSet<AssetType> GetRelatedAssetTypes( this Type type )
 	{
-		var result = new List<AssetType>();
+		var result = new HashSet<AssetType>();
 		
 		if ( AssetType.FromType( type ) is {} t )
 			result.Add( t );
