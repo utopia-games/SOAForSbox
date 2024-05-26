@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Editor;
+using Sandbox.ScriptableObjectArchitecture.Variables;
 using Sandbox.Variables;
 
 namespace Sandbox.ScriptableObjectArchitecture;
@@ -63,98 +64,46 @@ public class VariableReferenceWidget : ControlWidget
 		PropertyInfo? valueToUseEnumProperty = type.GetProperty( "ValueToUse" );
 		if ( valueToUseEnumProperty != null )
 		{
-			var serializedPropertyInfo = new SerializedPropertyWrapper( valueToUseEnumProperty, _currentValue, SerializedObject );
-			var e = Create( serializedPropertyInfo );
-			e.MaximumWidth = 80;
-			Layout.Add( e ); 
+			AddPropertyToLayout( valueToUseEnumProperty, _currentValue, SerializedObject, Layout, 80, null);
 		}
+		
 		VariableType valueToUse = (VariableType) valueToUseEnumProperty?.GetValue( _currentValue )!;
-
-
 		
 		// Control panel of VariableGameResource
 		PropertyInfo? variableProperty = type.GetProperty( "Variable" );
 		if ( valueToUse == Sandbox.Variables.VariableType.Variable && variableProperty != null )
 		{
 			var serializedPropertyInfo = new SerializedPropertyWrapper( variableProperty, _currentValue, SerializedObject );
-			var e = new GenericGameResourceWidget( serializedPropertyInfo );
+			var e = new VariableGameResourceWidget( serializedPropertyInfo, TypeDescriptorUnderlaying );
+			e.Prime();
 			_inner.Add( e );
 		}
-		
-		
 		
 		// Control panel of Value
 		PropertyInfo? valueProperty = type.GetProperty( "Value" );
-		if ( valueProperty != null && (valueToUse == Sandbox.Variables.VariableType.Constant || valueToUse == Sandbox.Variables.VariableType.Variable && variableProperty?.GetValue( _currentValue ) != default))
+		if ( valueProperty != null && IsPropertyVisible(valueProperty, valueToUse) )
 		{
-			var serializedPropertyInfo = new SerializedPropertyWrapper( valueProperty, _currentValue, SerializedObject );
-			var e = Create( serializedPropertyInfo );
-			e.MinimumWidth = 100;
-			_inner.Add( e );
+			AddPropertyToLayout( valueProperty, _currentValue, SerializedObject, _inner, null, 100);
 		}
-		
 	}
-
-	private bool NeedToShowProperty( SerializedPropertyWrapper serializedPropertyInfo, Type type, object current )
+	
+	private void AddPropertyToLayout(PropertyInfo propertyInfo, object currentValue, SerializedObject? serializedObject, Layout layout, float? maxwidth = 80, float? minwidth = 80)
 	{
-		var visibilityAttributes = serializedPropertyInfo.GetAttributes();
-		var visible = true;
-		try
-		{
-			foreach ( var visibilityAttribute in visibilityAttributes )
-			{
-				if( visibilityAttribute is HideAttribute )
-				{
-					visible = false;
-					break;
-				}
-				if ( visibilityAttribute is HideIfAttribute conditionalVisibilityAttribute )
-				{
-					var mypropProperty = type.GetProperty( conditionalVisibilityAttribute.PropertyName );
-					if ( mypropProperty == null )
-						continue;
-
-					var value = mypropProperty.GetValue( current );
-
-					if ( visibilityAttribute is ShowIfAttribute showIfAttribute )
-					{
-						if(value == null)
-						{
-							visible = showIfAttribute.Value == value;
-						}
-						else
-						{
-							visible = value.Equals( showIfAttribute.Value );
-						}
-						if ( !visible )
-							break;
-					}
-					else
-					{
-						if ( value == null  )
-						{
-							visible = conditionalVisibilityAttribute.Value != null;
-						}
-						else
-						{
-							visible = !value.Equals( conditionalVisibilityAttribute.Value );
-						}
-						
-						if ( !visible )
-							break;
-					}
-				}
-			}
-		}
-		catch ( Exception e )
-		{
-			Log.Warning( e.Message );
-		}
-
-		return visible;
+		var serializedPropertyInfo = new SerializedPropertyWrapper(propertyInfo, currentValue, serializedObject);
+		var e = Create(serializedPropertyInfo);
+		if(maxwidth != null)
+			e.MaximumWidth = (float)maxwidth;
+		if(minwidth != null)
+			e.MinimumWidth = (float)minwidth;
+		layout.Add(e);
 	}
 
-	protected override void OnPaint()
+	private bool IsPropertyVisible(PropertyInfo? property, VariableType valueToUse)
+	{
+		return property != null && (valueToUse == Sandbox.Variables.VariableType.Constant || (valueToUse == Sandbox.Variables.VariableType.Variable && property.GetValue(_currentValue) != default));
+	}
+
+	protected override void OnPaint() 
 	{
 		// nothing
 	}
