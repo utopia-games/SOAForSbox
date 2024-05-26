@@ -81,7 +81,7 @@ public class VariableReferenceWidget : ControlWidget
 		
 		// Control panel of Value
 		PropertyInfo? valueProperty = type.GetProperty( "Value" );
-		if ( valueProperty != null && IsPropertyVisible(valueProperty, valueToUse) )
+		if ( IsPropertyVisible(valueProperty, valueToUse) )
 		{
 			AddPropertyToLayout( valueProperty, _currentValue, SerializedObject, _inner, null, 100);
 		}
