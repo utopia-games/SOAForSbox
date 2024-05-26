@@ -6,10 +6,9 @@ using Sandbox.Utils;
 
 namespace Sandbox.ScriptableObjectArchitecture;
 
-[CustomEditor( typeof( IGenericGameResource ) )]
 public class GenericGameResourceWidget: ControlWidget
 {
-	private readonly List<AssetType> _assetTypes;
+	private readonly HashSet<AssetType> _assetTypes;
 
 	readonly IconButton? _previewButton;
 
@@ -50,12 +49,12 @@ public class GenericGameResourceWidget: ControlWidget
 
 	protected override void PaintControl()
 	{
-		var resource = SerializedProperty.GetValue<Resource>();
-		var asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
+		Resource? resource = SerializedProperty.GetValue<Resource>();
+		Asset? asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
 
-		var rect = new Rect( 0, Size );
+		Rect rect = new Rect( 0, Size );
 
-		var iconRect = rect.Shrink( 2 );
+		Rect iconRect = rect.Shrink( 2 );
 		iconRect.Width = iconRect.Height;
 
 		rect.Left = iconRect.Right + 10;
@@ -64,7 +63,7 @@ public class GenericGameResourceWidget: ControlWidget
 		Paint.SetBrush( Theme.Grey.WithAlpha( 0.2f ) );
 		Paint.DrawRect( iconRect, 2 );
 
-		var pickerName = DisplayInfo.ForType( SerializedProperty.PropertyType ).Name;
+		string? pickerName = DisplayInfo.ForType( SerializedProperty.PropertyType ).Name;
 		if ( !_assetTypes.IsEmptyOrNull() )
 		{
 			pickerName = string.Join( ", ", _assetTypes.Select( x => x.FriendlyName ) );
@@ -74,7 +73,7 @@ public class GenericGameResourceWidget: ControlWidget
 
 		if ( SerializedProperty.IsMultipleDifferentValues )
 		{
-			var textRect = rect.Shrink( 0, 3 );
+			Rect textRect = rect.Shrink( 0, 3 );
 			if ( icon != null ) Paint.Draw( iconRect, icon );
 
 			Paint.SetDefaultFont();
@@ -85,11 +84,11 @@ public class GenericGameResourceWidget: ControlWidget
 		{
 			Paint.Draw( iconRect, asset.GetAssetThumb() );
 
-			var textRect = rect.Shrink( 0, 3 );
+			Rect textRect = rect.Shrink( 0, 3 );
 
 			Paint.SetPen( Color.White.WithAlpha( 0.9f ) );
 			Paint.SetFont( "Poppins", 8, 450 );
-			var t = Paint.DrawText( textRect, $"{asset.Name}", TextFlag.LeftTop );
+			Rect t = Paint.DrawText( textRect, $"{asset.Name}", TextFlag.LeftTop );
 
 			textRect.Left = t.Right + 6;
 			Paint.SetDefaultFont( 7 );
@@ -97,12 +96,12 @@ public class GenericGameResourceWidget: ControlWidget
 		}
 		else if ( resource != null )
 		{
-			var textRect = rect.Shrink( 0, 3 );
+			Rect textRect = rect.Shrink( 0, 3 );
 
 			if ( icon != null ) Paint.Draw( iconRect, icon );
 			Paint.SetPen( Color.White.WithAlpha( 0.9f ) );
 			Paint.SetFont( "Poppins", 8, 450 );
-			var t = Paint.DrawText( textRect, $"Unknown {pickerName}", TextFlag.LeftTop );
+			Rect t = Paint.DrawText( textRect, $"Unknown {pickerName}", TextFlag.LeftTop );
 
 			textRect.Left = t.Right + 6;
 			Paint.SetDefaultFont( 7 );
@@ -110,7 +109,7 @@ public class GenericGameResourceWidget: ControlWidget
 		}
 		else
 		{
-			var textRect = rect.Shrink( 0, 3 );
+			Rect textRect = rect.Shrink( 0, 3 );
 			if ( icon != null ) Paint.Draw( iconRect, icon );
 
 			Paint.SetDefaultFont( italic: true );
@@ -121,11 +120,15 @@ public class GenericGameResourceWidget: ControlWidget
 
 	protected override void OnContextMenu( ContextMenuEvent e )
 	{
-		var m = new Editor.Menu();
+		CreateContextMenu( e ).OpenAtCursor(); 
+	}
 
-		var resource = SerializedProperty.GetValue<Resource>();
-		var asset = (resource != null) ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
-
+	protected Editor.Menu CreateContextMenu( ContextMenuEvent e )
+	{
+		Resource? resource = SerializedProperty.GetValue<Resource>();
+		Asset? asset = (resource != null) ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
+		
+		Editor.Menu m = new Editor.Menu();
 		m.AddOption( "Open in Editor", "edit", () => asset?.OpenInEditor() ).Enabled = asset != null;
 		m.AddSeparator();
 		m.AddOption( "Copy", "file_copy", action: Copy ).Enabled = asset != null;
@@ -133,7 +136,7 @@ public class GenericGameResourceWidget: ControlWidget
 		m.AddSeparator();
 		m.AddOption( "Clear", "backspace", action: Clear ).Enabled = resource != null;
 
-		m.OpenAtCursor();
+		return m;
 	}
 
 	protected override void OnMouseClick( MouseEvent e )
@@ -142,12 +145,12 @@ public class GenericGameResourceWidget: ControlWidget
 
 		if ( ReadOnly ) return;
 
-		var resource = SerializedProperty.GetValue<Resource>();
-		var asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
+		Resource? resource = SerializedProperty.GetValue<Resource>();
+		Asset? asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
 
-		var pickerName = DisplayInfo.ForType( SerializedProperty.PropertyType ).Name;
+		string? pickerName = DisplayInfo.ForType( SerializedProperty.PropertyType ).Name;
 
-		var picker = new AssetPicker( this, _assetTypes )
+		AssetPicker picker = new AssetPicker( this, _assetTypes.ToList() )
 		{
 			Window =
 			{
@@ -171,7 +174,8 @@ public class GenericGameResourceWidget: ControlWidget
 	{
 		if ( asset is null ) return;
 
-		var resource = asset.LoadResource( SerializedProperty.PropertyType );
+		Resource? resource = asset.LoadResource( SerializedProperty.PropertyType );
+		
 		SerializedProperty.SetValue( resource );
 	}
 
@@ -187,7 +191,7 @@ public class GenericGameResourceWidget: ControlWidget
 		if ( !ev.Data.HasFileOrFolder )
 			return;
 
-		var asset = AssetSystem.FindByPath( ev.Data.FileOrFolder );
+		Asset? asset = AssetSystem.FindByPath( ev.Data.FileOrFolder );
 
 		if ( asset == null || !_assetTypes.Contains( asset.AssetType ) )
 			return;
@@ -207,7 +211,7 @@ public class GenericGameResourceWidget: ControlWidget
 		if ( !ev.Data.HasFileOrFolder )
 			return;
 
-		var asset = AssetSystem.FindByPath( ev.Data.FileOrFolder );
+		Asset? asset = AssetSystem.FindByPath( ev.Data.FileOrFolder );
 
 		if ( asset is null || !_assetTypes.Contains( asset.AssetType ))
 			return;
@@ -218,7 +222,7 @@ public class GenericGameResourceWidget: ControlWidget
 
 	async Task DroppedUrl( string identUrl )
 	{
-		var asset = await AssetSystem.InstallAsync( identUrl );
+		Asset? asset = await AssetSystem.InstallAsync( identUrl );
 
 		if ( asset is null || !_assetTypes.Contains( asset.AssetType ) )
 			return;
@@ -228,23 +232,23 @@ public class GenericGameResourceWidget: ControlWidget
 
 	protected override void OnDragStart()
 	{
-		var resource = SerializedProperty.GetValue<Resource>();
-		var asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
+		Resource? resource = SerializedProperty.GetValue<Resource>();
+		Asset? asset = resource != null ? AssetSystem.FindByPath( resource.ResourcePath ) : null;
 
 		if ( asset == null )
 			return;
 
-		var drag = new Drag( this );
+		Drag drag = new Drag( this );
 		drag.Data.Url = new System.Uri( $"file://{asset.AbsolutePath}" );
 		drag.Execute();
 	}
 
 	void Copy()
 	{
-		var resource = SerializedProperty.GetValue<Resource>();
+		Resource? resource = SerializedProperty.GetValue<Resource>();
 		if ( resource == null ) return;
 
-		var asset = AssetSystem.FindByPath( resource.ResourcePath );
+		Asset? asset = AssetSystem.FindByPath( resource.ResourcePath );
 		if ( asset == null ) return;
 
 		EditorUtility.Clipboard.Copy( asset.Path );
@@ -252,8 +256,8 @@ public class GenericGameResourceWidget: ControlWidget
 
 	void Paste()
 	{
-		var path = EditorUtility.Clipboard.Paste();
-		var asset = AssetSystem.FindByPath( path );
+		string? path = EditorUtility.Clipboard.Paste();
+		Asset? asset = AssetSystem.FindByPath( path );
 		UpdateFromAsset( asset );
 	}
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Editor;
-using Sandbox.UI;
 using Sandbox.Variables;
 using Button = Editor.Button;
 using Label = Editor.Label;

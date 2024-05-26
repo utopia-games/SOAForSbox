@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -151,7 +149,7 @@ public class VariableGameResource : GameResource
 	}
 	public T? GetValue<T>()
 	{
-		return Variable?.RawValue is T value ? value : default;
+		return Variable?.RawValue is T value ? value : default; 
 	}
 
 	public void SetValue<T>( T value )
@@ -163,4 +161,5 @@ public class VariableGameResource : GameResource
 
 		Variable.RawValue = value;
 	}
+
 }

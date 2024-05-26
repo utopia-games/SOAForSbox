@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Reflection;
 using Editor;
-using Sandbox.ScriptableObjectArchitecture;
 using Sandbox.Variables;
 
-namespace Sandbox.CustomInterface;
+namespace Sandbox.ScriptableObjectArchitecture;
 
 [CustomEditor( typeof(VariableReference<>) )]
 public class VariableReferenceWidget : ControlWidget
@@ -38,10 +36,8 @@ public class VariableReferenceWidget : ControlWidget
 		{
 			SerializedObject.OnPropertyChanged += ( prop ) =>
 			{
-				if ( !prop.TryGetAttribute( out TagAttribute tag ) )
-					return;
-
-				if ( tag.Value.Any( e => e.ToLowerInvariant() == "refresh" ) )
+				// if enum property or variable property change, rebuild UI
+				if ( prop.PropertyType == typeof(VariableType) || prop.PropertyType == typeof(VariableGameResource) )
 				{
 					BuildUI();
 				}
@@ -61,27 +57,42 @@ public class VariableReferenceWidget : ControlWidget
 		Layout.Clear( true );
 		_inner = Layout.AddRow();
 		_inner.Spacing = 3;
-		foreach ( PropertyInfo propertyInfo in type.GetProperties() )
+		
+		
+		// Control panel of VariableType
+		PropertyInfo? valueToUseEnumProperty = type.GetProperty( "ValueToUse" );
+		if ( valueToUseEnumProperty != null )
 		{
-			var serializedPropertyInfo = new SerializedPropertyWrapper( propertyInfo, _currentValue, SerializedObject);
-			if ( !NeedToShowProperty( serializedPropertyInfo, type, _currentValue ) )
-				continue;
-
-			var displayInfo = DisplayInfo.ForMember( propertyInfo );
-			if ( displayInfo.HasTag( "enum" ) )
-			{
-				var e = Create( serializedPropertyInfo );
-				e.MaximumWidth = 80;
-				Layout.Add( e );
-			}
-			else
-			{
-				var e = Create( serializedPropertyInfo );
-				e.MinimumWidth = 80;
-				e.ReadOnly = displayInfo.ReadOnly;
-				_inner.Add( e );
-			}
+			var serializedPropertyInfo = new SerializedPropertyWrapper( valueToUseEnumProperty, _currentValue, SerializedObject );
+			var e = Create( serializedPropertyInfo );
+			e.MaximumWidth = 80;
+			Layout.Add( e ); 
 		}
+		VariableType valueToUse = (VariableType) valueToUseEnumProperty?.GetValue( _currentValue )!;
+
+
+		
+		// Control panel of VariableGameResource
+		PropertyInfo? variableProperty = type.GetProperty( "Variable" );
+		if ( valueToUse == Sandbox.Variables.VariableType.Variable && variableProperty != null )
+		{
+			var serializedPropertyInfo = new SerializedPropertyWrapper( variableProperty, _currentValue, SerializedObject );
+			var e = new GenericGameResourceWidget( serializedPropertyInfo );
+			_inner.Add( e );
+		}
+		
+		
+		
+		// Control panel of Value
+		PropertyInfo? valueProperty = type.GetProperty( "Value" );
+		if ( valueProperty != null && (valueToUse == Sandbox.Variables.VariableType.Constant || valueToUse == Sandbox.Variables.VariableType.Variable && variableProperty?.GetValue( _currentValue ) != default))
+		{
+			var serializedPropertyInfo = new SerializedPropertyWrapper( valueProperty, _currentValue, SerializedObject );
+			var e = Create( serializedPropertyInfo );
+			e.MinimumWidth = 100;
+			_inner.Add( e );
+		}
+		
 	}
 
 	private bool NeedToShowProperty( SerializedPropertyWrapper serializedPropertyInfo, Type type, object current )

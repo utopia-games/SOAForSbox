@@ -5,18 +5,11 @@ namespace Sandbox.Variables;
 
 public class VariableReference<T>
 {
-	[Tag( "Enum", "Refresh" )] public VariableType ValueToUse { get; set; }
-
-	[Hide] public T? ConstantValue { get; set; } = default;
-
-	[ShowIf( nameof(ValueToUse), VariableType.Variable ), Tag( "Refresh" )]
+	public VariableType ValueToUse { get; set; }
+	public T? ConstantValue { get; set; } = default;
 	public VariableGameResource? Variable { get; set; } = default;
 
-	[Hide, JsonIgnore]
-	public bool CanEditValue =>
-		(ValueToUse == VariableType.Variable && Variable != null) || ValueToUse == VariableType.Constant;
-
-	[JsonIgnore, HideIf( nameof(CanEditValue), false )]
+	[JsonIgnore]
 	public T? Value
 	{
 		get =>
