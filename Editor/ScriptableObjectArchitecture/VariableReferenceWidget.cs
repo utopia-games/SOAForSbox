@@ -87,8 +87,11 @@ public class VariableReferenceWidget : ControlWidget
 		}
 	}
 	
-	private void AddPropertyToLayout(PropertyInfo propertyInfo, object currentValue, SerializedObject? serializedObject, Layout layout, float? maxwidth = 80, float? minwidth = 80)
+	private void AddPropertyToLayout(PropertyInfo? propertyInfo, object currentValue, SerializedObject? serializedObject, Layout layout, float? maxwidth = 80, float? minwidth = 80)
 	{
+		if (propertyInfo == null)
+			return;
+		
 		var serializedPropertyInfo = new SerializedPropertyWrapper(propertyInfo, currentValue, serializedObject);
 		var e = Create(serializedPropertyInfo);
 		if(maxwidth != null)

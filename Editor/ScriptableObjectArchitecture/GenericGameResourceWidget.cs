@@ -70,7 +70,7 @@ public class GenericGameResourceWidget: ControlWidget
 		}
 
 		Pixmap? icon = _assetTypes.Select( e => e.Icon64 ).FirstOrDefault();
-
+		
 		if ( SerializedProperty.IsMultipleDifferentValues )
 		{
 			Rect textRect = rect.Shrink( 0, 3 );
@@ -170,7 +170,7 @@ public class GenericGameResourceWidget: ControlWidget
 		picker.Window.Show();
 	}
 
-	private void UpdateFromAsset( Asset? asset )
+	protected virtual void UpdateFromAsset( Asset? asset )
 	{
 		if ( asset is null ) return;
 
