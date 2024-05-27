@@ -5,48 +5,41 @@ namespace Sandbox.Variables;
 
 public class VariableReference<T>
 {
-	[Tag("Enum", "Refresh")]
 	public VariableType ValueToUse { get; set; }
-	
-	[Hide]
 	public T? ConstantValue { get; set; } = default;
-	
-	[ShowIf(nameof( ValueToUse ), VariableType.Variable), Tag("Refresh")]
-	public Variable<T>? Variable { get; set; } = default;
+	public VariableGameResource? Variable { get; set; } = default;
 
-	[Hide, JsonIgnore]
-	public bool CanEditValue =>
-		(ValueToUse == VariableType.Variable && Variable != null) || ValueToUse == VariableType.Constant;
-
-	[JsonIgnore, HideIf(nameof( CanEditValue ), false)]
+	[JsonIgnore]
 	public T? Value
 	{
 		get =>
 			ValueToUse switch
-			{ 
+			{
 				VariableType.Constant => ConstantValue,
-				VariableType.Variable when Variable != null => Variable.Value,
+				VariableType.Variable when Variable != null => Variable.GetValue<T>(),
 				VariableType.Variable when Variable == null => default,
 				_ => throw new ArgumentOutOfRangeException( nameof(ValueToUse), ValueToUse, "Invalid ValueToUse." )
 			};
 		set
 		{
-			switch (ValueToUse)
+			switch ( ValueToUse )
 			{
 				case VariableType.Constant:
 					ConstantValue = value;
 					break;
 				case VariableType.Variable when Variable != null:
-					Variable.Value = value;
+					Variable.SetValue( value );
 					break;
 				case VariableType.Variable when Variable == null:
-					throw new NullReferenceException("Variable is null. Cannot set value. Please assign a variable, or use a constant value.");
+					throw new NullReferenceException(
+						"Variable is null. Cannot set value. Please assign a variable, or use a constant value." );
 				default:
-					throw new ArgumentOutOfRangeException(nameof(ValueToUse), ValueToUse, "Invalid ValueToUse.");
+					throw new ArgumentOutOfRangeException( nameof(ValueToUse), ValueToUse, "Invalid ValueToUse." );
 			}
 		}
 	}
 }
+
 
 [Serializable]
 public enum VariableType

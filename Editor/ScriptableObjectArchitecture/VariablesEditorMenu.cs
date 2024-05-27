@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Editor;
-using Sandbox.UI;
 using Sandbox.Variables;
 using Button = Editor.Button;
 using Label = Editor.Label;
@@ -105,7 +104,7 @@ public static class VariablesEditorMenu
 	
 	public static List<AssetType> GetVariableTypes()
 	{
-		var genericType = typeof(Variable<>);
+		var genericType = typeof(IVariable);
 
 		bool Predicate( AssetType x ) => x.ResourceType != null && x.ResourceType.IsBasedOnGenericType( genericType ) && x.FileExtension != "errored";
 		
